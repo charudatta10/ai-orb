@@ -2,6 +2,7 @@ import json
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 import traceback
+from sandbox import SecureSandbox as sandbox
 
 class LLMReasoner:
     """
@@ -47,47 +48,6 @@ class LLMReasoner:
             print(f"Error generating plan: {e}")
             return []
 
-class ToolSandbox:
-    """
-    Provides a safe execution environment for tools.
-    """
-    def __init__(self, tools: Dict[str, callable]):
-        """
-        Initialize the sandbox with available tools.
-        
-        Args:
-            tools (Dict[str, callable]): Dictionary of available tools
-        """
-        self.tools = tools
-    
-    def execute_tool(self, tool_name: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Execute a tool in a controlled environment.
-        
-        Args:
-            tool_name (str): Name of the tool to execute
-            input_data (Dict[str, Any]): Input parameters for the tool
-        
-        Returns:
-            Execution result or error information
-        """
-        try:
-            tool = self.tools.get(tool_name)
-            if not tool:
-                return {"error": f"Tool {tool_name} not found"}
-            
-            result = tool(**input_data)
-            return {
-                "success": True,
-                "output": result
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "error": str(e),
-                "traceback": traceback.format_exc()
-            }
-
 @dataclass
 class AgentMemory:
     """
@@ -121,17 +81,21 @@ class GoalOrientedAgent:
     """
     An agent that can reason, plan, act, and learn towards achieving a goal.
     """
-    def __init__(self, llm, tools: Dict[str, callable]):
+    def __init__(self, llm, tools: Dict[str, callable], name: str, description: str):
         """
         Initialize the agent with reasoning and execution capabilities.
         
         Args:
             llm: Language model for reasoning
             tools (Dict[str, callable]): Available tools for action
+            name (str): Name of the agent
+            description (str): Description of the agent's role
         """
         self.reasoner = LLMReasoner(llm)
-        self.sandbox = ToolSandbox(tools)
+        self.sandbox = sandbox(tools)
         self.memory = AgentMemory()
+        self.name = name
+        self.description = description
     
     def solve_goal(self, goal: str, initial_context: Dict[str, Any], max_iterations: int = 5):
         """
@@ -209,68 +173,7 @@ class GoalOrientedAgent:
         # This could involve LLM-based analysis of past observations
         return context
 
-# Example usage
-def example_tools():
-    """
-    Create example tools for demonstration.
-    """
-    def search_internet(query):
-        # Simulated internet search
-        return f"Search results for: {query}"
-    
-    def analyze_data(data):
-        # Simulated data analysis
-        return f"Analysis of {data}"
-    
-    def generate_report(data):
-        # Simulated report generation
-        return f"Report generated from {data}"
-    
-    return {
-        "search": search_internet,
-        "analyze": analyze_data,
-        "report": generate_report
-    }
 
-# Simulation of a simple LLM
-class SimpleLLM:
-    def generate(self, prompt):
-        # Very basic LLM simulation
-        return json.dumps([
-            {
-                "tool": "search",
-                "input": {"query": "research problem"},
-                "description": "Perform initial internet search"
-            },
-            {
-                "tool": "analyze",
-                "input": {"data": "search results"},
-                "description": "Analyze gathered information"
-            },
-            {
-                "tool": "report",
-                "input": {"data": "analysis results"},
-                "description": "Generate final report"
-            }
-        ])
-
-# Demonstration
-def main():
-    # Create tools and LLM
-    tools = example_tools()
-    llm = SimpleLLM()
-    
-    # Initialize agent
-    agent = GoalOrientedAgent(llm, tools)
-    
-    # Solve a goal
-    result = agent.solve_goal(
-        goal="Generate a comprehensive research report",
-        initial_context={"initial_query": "AI advancements"}
-    )
-    
-    print("Final Context:", result)
-    print("Agent Memory:", agent.memory.observations)
 
 if __name__ == "__main__":
-    main()
+    ...

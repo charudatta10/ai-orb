@@ -89,30 +89,7 @@ class LLMTool:
             "callable": self.forward
         }
 
-# Example usage demonstration
-def add_numbers(x: int, y: int) -> int:
-    """
-    Add two numbers together.
-    
-    Use Case: Simple arithmetic addition of two integers.
-    
-    Args:
-        x (int): First number to add
-        y (int): Second number to add
-    
-    Returns:
-        int: Sum of x and y
-    """
-    return x + y
-
-# Create an LLM tool from the function
-add_tool = LLMTool(add_numbers)
 
 # Demonstrate usage
 if __name__ == "__main__":
-    result = add_tool(5, 3)  # Direct calling
-    print(f"Result: {result}")
-    print(f"Tool Name: {add_tool.name}")
-    print(f"Tool Description: {add_tool.description}")
-    print(f"Tool Metadata: {add_tool.to_dict()}")
-    print(f"Calling Tool Directly: {add_tool.forward(10, 20)}")  # Using forward method
+    ...

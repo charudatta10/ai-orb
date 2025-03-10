@@ -26,10 +26,10 @@ class AgentRunner:
             problem_context (Dict[str, Any], optional): Initial context for the problem
             logging_level (int): Logging configuration level
         """
-        self.agents = agents
-        self.problem_context = problem_context or {}
+
+        # Generate a unique run ID
         self.run_id = str(uuid.uuid4())
-        
+
         # Setup logging
         self.logger = logging.getLogger(f"AgentRunner-{self.run_id}")
         self.logger.setLevel(logging_level)
@@ -39,10 +39,34 @@ class AgentRunner:
         )
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
+
+        # Validate agents
+        self.agents = self._validate_agents(agents)
+        self.problem_context = problem_context or {}
         
+        
+               
         # Agent tracking
         self.agent_results = {}
         self.shared_memory = AgentSharedMemory()
+    
+    def _validate_agents(self, agents: List[Any]) -> List[Any]:
+        """
+        Validate that all agents in the list implement the required methods.
+        
+        Args:
+            agents (List[Any]): List of agent instances
+        
+        Returns:
+            List of validated agents
+        """
+        validated_agents = []
+        for agent in agents:
+            if hasattr(agent, 'solve_goal') and callable(agent.solve_goal):
+                validated_agents.append(agent)
+            else:
+                self.logger.error(f"Invalid agent: {agent}. Agent must implement 'solve_goal' method.")
+        return validated_agents
     
     async def run_collaborative_solve(
         self, 
@@ -222,69 +246,7 @@ class AgentSharedMemory:
         async with self._lock:
             self._memory.clear()
 
-# Example Usage Demonstration
-def create_example_agents(llm, tools):
-    """
-    Create example agents for demonstration.
-    
-    Args:
-        llm: Language model
-        tools: Available tools
-    
-    Returns:
-        List of example agents
-    """
-    from typing import List, Dict, Any
-    
-    class ResearchAgent:
-        def solve_goal(self, goal: str, initial_context: Dict[str, Any]) -> Dict[str, Any]:
-            # Simulate research agent's goal solving
-            print(f"Research Agent working on: {goal}")
-            return {"research_findings": "Comprehensive research completed"}
-    
-    class AnalysisAgent:
-        def solve_goal(self, goal: str, initial_context: Dict[str, Any]) -> Dict[str, Any]:
-            # Simulate analysis agent's goal solving
-            print(f"Analysis Agent working on: {goal}")
-            return {"analysis_results": "Deep analytical insights generated"}
-    
-    class ReportingAgent:
-        def solve_goal(self, goal: str, initial_context: Dict[str, Any]) -> Dict[str, Any]:
-            # Simulate reporting agent's goal solving
-            print(f"Reporting Agent working on: {goal}")
-            return {"report": "Comprehensive report created"}
-    
-    return [
-        ResearchAgent(),
-        AnalysisAgent(),
-        ReportingAgent()
-    ]
-
-async def main():
-    """
-    Demonstrate the multi-agent runner.
-    """
-    # Simulate language model and tools
-    llm = None  # Replace with actual LLM
-    tools = {}  # Replace with actual tools
-    
-    # Create agents
-    agents = create_example_agents(llm, tools)
-    
-    # Initialize runner
-    runner = AgentRunner(
-        agents=agents, 
-        problem_context={"initial_directive": "Investigate AI trends"}
-    )
-    
-    # Run collaborative problem solving
-    result = await runner.run_collaborative_solve(
-        main_goal="Generate comprehensive AI trend report",
-        max_iterations=3
-    )
-    
-    print("Final Result:", json.dumps(result, indent=2))
 
 # Allow script to be run directly or imported
 if __name__ == "__main__":
-    asyncio.run(main())
+    ...
