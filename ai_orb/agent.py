@@ -2,7 +2,10 @@ import json
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 import traceback
-from sandbox import SecureSandbox as sandbox
+#from sandbox import SecureSandbox as sandbox
+
+class sandbox:
+    pass
 
 class LLMReasoner:
     """
