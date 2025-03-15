@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
 
-from ai_orb.agent import LLMReasoner, AgentMemory, GoalOrientedAgent
+from ai_orb.agent import Think, Act, Observe, GoalOrientedAgent
 
 def test_generate_plan():
     """Test LLMReasoner.generate_plan method."""

@@ -1,5 +1,5 @@
 import pytest
-from ai_orb.tool import LLMTool  # Replace with the actual module name
+from ai_orb.tool import Tool  # Replace with the actual module name
 from ai_orb.sandbox import SecureSandbox  # Replace with the actual module name
 
 # Helper functions for testing

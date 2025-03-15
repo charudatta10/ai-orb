@@ -1,6 +1,6 @@
 import pytest
 from typing import Any, Callable, Dict
-from ai_orb.tool import LLMTool  # Replace with the actual module name
+from ai_orb.tool import Tool  # Replace with the actual module name
 
 # Helper functions for testing
 def example_function(a: int, b: int) -> int:
