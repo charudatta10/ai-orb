@@ -55,8 +55,12 @@ Contributions are welcome! Please open an issue or submit a pull request for any
 
 This project is licensed under the GPL-3.0 License. See the [LICENSE](https://github.com/charudatta10/ai-agent/blob/main/LICENSE) file for details.
 
----
 
-Copyright 2076 CHARUDATTA KORDE LLC.
+
+> [!NOTE]
+>
+> COPYRIGHT NOTICE  
+> Some Rights Reserved © 2025 Charudatta Korde.  
+> This work and its derivatives may only be used with full attribution.
 
 <!-- Acknowledgment, References, Misc -->
