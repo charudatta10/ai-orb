@@ -1,77 +1,104 @@
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from dataclasses import dataclass, field
-import traceback
-#from sandbox import SecureSandbox as sandbox
+from tool import Tool
+from sandbox import SecureSandbox
 
-class sandbox:
-    pass
+@dataclass
+class Think:
+    """
+    Think module handles reasoning and planning with the LLM.
+    """
+    llm: Tool  # LLMTool provides the interface to interact with the LLM
+    tools: Dict[str, callable]  # Dictionary of available tools with their API syntax
 
-class LLMReasoner:
-    """
-    Provides reasoning capabilities using a Language Model.
-    """
-    def __init__(self, llm):
-        """
-        Initialize the reasoner with a language model.
-        
-        Args:
-            llm: Language model with generate or chat method
-        """
-        self.llm = llm
-    
     def generate_plan(self, goal: str, context: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Generate a step-by-step plan to achieve the goal.
-        
+
         Args:
             goal (str): The objective to be achieved
-            context (Dict[str, Any]): Current context and available information
-        
+            context (Dict[str, Any]): Current context and information
+
         Returns:
             List of plan steps with details
         """
+        # Generate a summary of tool APIs for the LLM
+        tool_descriptions = [
+            f"Tool: {tool_name}\nAPI Syntax: {tool_func.__doc__}"
+            for tool_name, tool_func in self.tools.items()
+        ]
+        tool_info = "\n\n".join(tool_descriptions)
+
         prompt = f"""
         Goal: {goal}
         Context: {json.dumps(context)}
-        
-        Generate a detailed, actionable plan to achieve this goal. 
+
+        Available Tools:
+        {tool_info}
+
+        Generate a detailed, actionable plan to achieve this goal.
         Each plan step should include:
-        - A clear, specific action
-        - Required tools or resources
-        - Expected outcome
-        
+        - A specific action
+        - Tool to use and its input
+        - Expected output
+
         Provide the plan as a JSON list of steps.
         """
-        
         try:
-            response = self.llm.generate(prompt)
-            return json.loads(response)
+            response = self.llm.generate(model="qwen2.5:0.5b", prompt=prompt)
+            return json.loads(response['response'])
         except Exception as e:
             print(f"Error generating plan: {e}")
             return []
 
+
 @dataclass
-class AgentMemory:
+class Act:
     """
-    Manages agent's memory and learning.
+    Act module handles the execution of tasks in a secure sandbox.
+    """
+    sandbox: SecureSandbox
+
+    def execute_tool(self, tool_name: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute a tool securely in the sandbox.
+
+        Args:
+            tool_name (str): The name of the tool to execute
+            input_data (Dict[str, Any]): Input for the tool
+
+        Returns:
+            Dict[str, Any]: Result of the tool execution
+        """
+        try:
+            result = self.sandbox.execute_tool(tool_name, input_data)
+            return {"success": True, "output": result}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+@dataclass
+class Observe:
+    """
+    Observe module manages memory and observations.
     """
     observations: List[Dict[str, Any]] = field(default_factory=list)
     past_plans: List[Dict[str, Any]] = field(default_factory=list)
-    
+
     def record_observation(self, observation: Dict[str, Any]):
         """
         Record an observation from an action.
-        
+
         Args:
             observation (Dict[str, Any]): Observation details
         """
         self.observations.append(observation)
-    
+
     def record_plan(self, plan: List[Dict[str, Any]]):
         """
         Record a plan for future reference.
-        
+
         Args:
             plan (List[Dict[str, Any]]): Plan steps
         """
@@ -80,103 +107,121 @@ class AgentMemory:
             "plan": plan
         })
 
+
 class GoalOrientedAgent:
     """
-    An agent that can reason, plan, act, and learn towards achieving a goal.
+    An agent following the Think-Act-Observe cycle to achieve a goal.
     """
-    def __init__(self, llm, tools: Dict[str, callable], name: str, description: str):
+    def __init__(self, llm: Tool, tools: Dict[str, callable], name: str, description: str):
         """
-        Initialize the agent with reasoning and execution capabilities.
-        
+        Initialize the agent with modules for thinking, acting, and observing.
+
         Args:
-            llm: Language model for reasoning
-            tools (Dict[str, callable]): Available tools for action
+            llm (LLMTool): Language model for reasoning
+            tools (Dict[str, callable]): Tools for action
             name (str): Name of the agent
-            description (str): Description of the agent's role
+            description (str): Description of the agent
         """
-        self.reasoner = LLMReasoner(llm)
-        self.sandbox = sandbox(tools)
-        self.memory = AgentMemory()
+        sandbox = SecureSandbox(tools)
+        self.think = Think(llm, tools)
+        self.act = Act(sandbox)
+        self.observe = Observe()
         self.name = name
         self.description = description
-    
+
     def solve_goal(self, goal: str, initial_context: Dict[str, Any], max_iterations: int = 5):
         """
-        Attempt to solve a goal through iterative planning and execution.
-        
+        Solve a goal iteratively through Think-Act-Observe cycle.
+
         Args:
             goal (str): The objective to achieve
-            initial_context (Dict[str, Any]): Starting context and information
-            max_iterations (int): Maximum number of planning iterations
-        
+            initial_context (Dict[str, Any]): Starting context
+            max_iterations (int): Maximum number of iterations
+
         Returns:
-            Final result of goal-solving attempt
+            Final context after attempting to solve the goal
         """
         current_context = initial_context.copy()
-        
+
         for iteration in range(max_iterations):
-            # Generate plan
-            plan = self.reasoner.generate_plan(goal, current_context)
-            self.memory.record_plan(plan)
-            
-            # Execute plan steps
+            print(f"Iteration {iteration + 1}: Thinking...")
+            # THINK: Generate plan
+            plan = self.think.generate_plan(goal, current_context)
+            self.observe.record_plan(plan)
+
+            print(f"Plan: {plan}")
+
+            # ACT: Execute steps
             for step in plan:
-                tool_name = step.get('tool')
-                input_data = step.get('input', {})
-                
-                # Execute tool in sandbox
-                result = self.sandbox.execute_tool(tool_name, input_data)
-                
-                # Record observation
-                observation = {
-                    "step": step,
-                    "result": result
-                }
-                self.memory.record_observation(observation)
-                
+                tool_name = step.get("tool")
+                input_data = step.get("input", {})
+
+                print(f"Executing step: {step}")
+                result = self.act.execute_tool(tool_name, input_data)
+
+                # OBSERVE: Record observation
+                observation = {"step": step, "result": result}
+                self.observe.record_observation(observation)
+                print(f"Observation: {observation}")
+
                 # Update context with result
-                if result.get('success'):
-                    current_context[tool_name] = result['output']
-                
-                # Optional: Check goal achievement
+                if result.get("success"):
+                    current_context[tool_name] = result["output"]
+
+                # Check if goal is achieved
                 if self._check_goal_achieved(goal, current_context):
+                    print("Goal achieved!")
                     return current_context
-            
-            # If goal not achieved, use memory to refine approach
+
+            # Refine context for the next iteration
             current_context = self._refine_context(current_context)
-        
+            print(f"Refined Context: {current_context}")
+
+        print("Failed to achieve goal within maximum iterations.")
         return current_context
-    
+
     def _check_goal_achieved(self, goal: str, context: Dict[str, Any]) -> bool:
         """
-        Check if the goal has been achieved based on current context.
-        
+        Check if the goal has been achieved.
+
         Args:
-            goal (str): Goal to evaluate
+            goal (str): The goal
             context (Dict[str, Any]): Current context
-        
+
         Returns:
-            Boolean indicating goal achievement
+            bool: True if goal is achieved, False otherwise
         """
-        # Implement goal-specific achievement logic
-        # This is a placeholder and should be customized
+        # Implement goal-specific logic
         return False
-    
+
     def _refine_context(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Refine context based on past observations and failures.
-        
+        Refine the context based on observations.
+
         Args:
             context (Dict[str, Any]): Current context
-        
+
         Returns:
             Refined context
         """
-        # Implement context refinement logic
-        # This could involve LLM-based analysis of past observations
+        # Implement logic for context refinement
         return context
 
 
-
 if __name__ == "__main__":
-    ...
+    # Example usage with LLMTool and SecureSandbox
+    def sample_tool(input_data):
+        """
+        API Syntax: sample_tool(input_data: Dict[str, Any]) -> str
+        Processes the input and returns the result.
+        """
+        return f"Processed {input_data}"
+
+    tools = {"sample_tool": sample_tool}
+    import ollama
+    llm = ollama.Client(host='http://localhost:11434')
+    agent = GoalOrientedAgent(llm, tools, "Test Agent", "An agent for testing.")
+    goal = "Complete a sample task"
+    initial_context = {"sample_tool": None}
+    result = agent.solve_goal(goal, initial_context)
+    print(f"Final Result: {result}")

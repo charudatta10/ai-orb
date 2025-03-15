@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict, Optional
 import inspect
 
-class LLMTool:
+class Tool:
     """
     A wrapper class for creating callable tools compatible with Language Learning Models.
     

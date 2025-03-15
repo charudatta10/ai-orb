@@ -9,7 +9,7 @@ import traceback
 import builtins
 import importlib
 
-from ai_orb.tool import LLMTool
+from tool import Tool
 
 class SecureSandbox:
     def __init__(self, 
