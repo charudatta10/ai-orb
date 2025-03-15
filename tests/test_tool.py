@@ -1,75 +1,93 @@
 import pytest
-from typing import Any, Callable, Dict
-from ai_orb.tool import Tool  # Replace with the actual module name
+from typing import Any, Dict, Optional
+from ai_orb.tool import Tool  # Replace `your_module` with the actual module name
 
-# Helper functions for testing
-def example_function(a: int, b: int) -> int:
-    """Example function for testing."""
-    return a + b
+# Define sample functions to wrap with the Tool class
+def sample_function(x: int, y: int) -> int:
+    """
+    Adds two numbers.
+    """
+    return x + y
 
-def example_function_no_docstring(a: int, b: int) -> int:
-    return a * b
+def function_with_defaults(a: str = "default", b: int = 10) -> str:
+    """
+    Concatenates a string and a number.
+    """
+    return f"{a} {b}"
 
-def example_function_no_args() -> str:
-    """Example function with no arguments."""
+def function_with_no_args() -> str:
+    """
+    Returns a static string.
+    """
     return "Hello, World!"
 
-# Test Initialization
-def test_initialization():
-    tool = LLMTool(example_function, name="add", description="Adds two numbers")
-    assert tool.name == "add"
-    assert tool.description == "Adds two numbers"
-    assert tool.func == example_function
+# Tests for the Tool class
+def test_tool_initialization():
+    """
+    Test that the Tool initializes correctly with a function.
+    """
+    tool = Tool(func=sample_function)
+    assert tool.name == "sample_function"
+    assert tool.description == "Adds two numbers."
 
-def test_initialization_defaults():
-    tool = LLMTool(example_function)
-    assert tool.name == "example_function"
-    assert tool.description == "Example function for testing."
+def test_tool_custom_name_and_description():
+    """
+    Test that the Tool initializes with a custom name and description.
+    """
+    tool = Tool(
+        func=sample_function,
+        name="CustomTool",
+        description="This is a custom tool description."
+    )
+    assert tool.name == "CustomTool"
+    assert tool.description == "This is a custom tool description."
 
-def test_initialization_no_docstring():
-    tool = LLMTool(example_function_no_docstring)
-    assert tool.name == "example_function_no_docstring"
-    assert tool.description == "No description provided"
+def test_tool_call():
+    """
+    Test that the Tool correctly executes the wrapped function.
+    """
+    tool = Tool(func=sample_function)
+    result = tool(3, 4)
+    assert result == 7
 
-# Test __call__ Method
-def test_call_method():
-    tool = LLMTool(example_function)
-    result = tool(2, 3)
-    assert result == 5
+def test_tool_call_with_defaults():
+    """
+    Test that the Tool correctly handles functions with default arguments.
+    """
+    tool = Tool(func=function_with_defaults)
+    # Call with default arguments
+    result = tool()
+    assert result == "default 10"
+    # Call with custom arguments
+    result = tool(a="Custom", b=20)
+    assert result == "Custom 20"
 
-# Test forward Method
-def test_forward_method():
-    tool = LLMTool(example_function)
-    result = tool.forward(2, 3)
-    assert result == 5
-
-def test_forward_method_with_kwargs():
-    tool = LLMTool(example_function)
-    result = tool.forward(a=2, b=3)
-    assert result == 5
-
-def test_forward_method_invalid_args():
-    tool = LLMTool(example_function)
-    with pytest.raises(ValueError):
-        tool.forward(2)  # Missing required argument 'b'
-
-# Test to_dict Method
-def test_to_dict_method():
-    tool = LLMTool(example_function, name="add", description="Adds two numbers")
-    tool_dict = tool.to_dict()
-    assert tool_dict == {
-        "name": "add",
-        "description": "Adds two numbers",
-        "callable": tool.forward
-    }
-
-# Test Edge Cases
-def test_function_no_args():
-    tool = LLMTool(example_function_no_args)
+def test_tool_call_no_args():
+    """
+    Test that the Tool works with functions that take no arguments.
+    """
+    tool = Tool(func=function_with_no_args)
     result = tool()
     assert result == "Hello, World!"
 
-def test_function_no_args_with_args():
-    tool = LLMTool(example_function_no_args)
-    with pytest.raises(ValueError):
-        tool(1)  # Function takes no arguments
+def test_tool_error_handling():
+    """
+    Test that the Tool raises a ValueError for incorrect arguments.
+    """
+    tool = Tool(func=sample_function)
+    with pytest.raises(ValueError, match="Error calling tool sample_function:"):
+        tool(3)  # Missing required arguments
+
+def test_tool_to_dict():
+    """
+    Test that the Tool correctly converts to a dictionary representation.
+    """
+    tool = Tool(func=sample_function)
+    tool_dict = tool.to_dict()
+    assert tool_dict["name"] == "sample_function"
+    assert tool_dict["description"] == "Adds two numbers."
+    assert callable(tool_dict["callable"])
+
+# Run the tests
+if __name__ == "__main__":
+    pytest.main()

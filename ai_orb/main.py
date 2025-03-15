@@ -1,10 +1,8 @@
-from agent import GoalOrientedAgent
-from runner import AgentRunner
-from tool import LLMTool
+from agent import CollaborativeAgent
 import ollama
 import asyncio
 import json
-from sandbox import SecureSandbox
+from sandbox import SecureSandbox, Tool
 
 # Define the tools available to the agent as actual functions
 def summarize(text):
@@ -91,32 +89,7 @@ async def main():
     }
     
     # Initialize runner with proper agents
-    runner = AgentRunner(
-        agents=agents,
-        problem_context={"initial_directive": "Investigate AI trends"}
-    )
     
-    try:
-        # Run collaborative problem solving with error handling
-        result = await runner.run_collaborative_solve(
-            main_goal="Generate comprehensive AI trend report",
-            max_iterations=3
-        )
-        
-        print("Final Result:", json.dumps(result, indent=2))
-    except Exception as e:
-        print(f"Error during execution: {str(e)}")
-        # Fallback logic in case of failure
-        print("Attempting basic report generation without agents...")
-        basic_report = {
-            "title": "AI Trends Report",
-            "sections": [
-                {"heading": "Current Trends", "content": "AI adoption is increasing across industries."},
-                {"heading": "Future Outlook", "content": "Continued growth expected in generative AI applications."}
-            ],
-            "generated_by": "Fallback mechanism"
-        }
-        print(json.dumps(basic_report, indent=2))
 
 if __name__ == "__main__":
     asyncio.run(main())

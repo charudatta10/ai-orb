@@ -1,16 +1,16 @@
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Callable
 from dataclasses import dataclass, field
-from tool import Tool
-from sandbox import SecureSandbox
+from ai_orb.sandbox import SecureSandbox, Tool
+import ollama
 
 @dataclass
 class Think:
     """
     Think module handles reasoning and planning with the LLM.
     """
-    llm: Tool  # LLMTool provides the interface to interact with the LLM
-    tools: Dict[str, callable]  # Dictionary of available tools with their API syntax
+    llm: ollama  # LLM provides the interface to interact with the LLM
+    tools: Dict[str, Callable]  # Dictionary of available tools, including other agents
 
     def generate_plan(self, goal: str, context: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
@@ -108,17 +108,17 @@ class Observe:
         })
 
 
-class GoalOrientedAgent:
+class CollaborativeAgent:
     """
-    An agent following the Think-Act-Observe cycle to achieve a goal.
+    A collaborative agent that follows the Think-Act-Observe cycle and collaborates with other agents.
     """
-    def __init__(self, llm: Tool, tools: Dict[str, callable], name: str, description: str):
+    def __init__(self, llm: ollama, tools: Dict[str, Callable], name: str, description: str):
         """
         Initialize the agent with modules for thinking, acting, and observing.
 
         Args:
-            llm (LLMTool): Language model for reasoning
-            tools (Dict[str, callable]): Tools for action
+            llm (Tool): Language model for reasoning
+            tools (Dict[str, Callable]): Tools for action, including other agents
             name (str): Name of the agent
             description (str): Description of the agent
         """
@@ -144,25 +144,25 @@ class GoalOrientedAgent:
         current_context = initial_context.copy()
 
         for iteration in range(max_iterations):
-            print(f"Iteration {iteration + 1}: Thinking...")
+            print(f"[{self.name}] Iteration {iteration + 1}: Thinking...")
             # THINK: Generate plan
             plan = self.think.generate_plan(goal, current_context)
             self.observe.record_plan(plan)
 
-            print(f"Plan: {plan}")
+            print(f"[{self.name}] Plan: {plan}")
 
             # ACT: Execute steps
             for step in plan:
                 tool_name = step.get("tool")
                 input_data = step.get("input", {})
 
-                print(f"Executing step: {step}")
+                print(f"[{self.name}] Executing step: {step}")
                 result = self.act.execute_tool(tool_name, input_data)
 
                 # OBSERVE: Record observation
                 observation = {"step": step, "result": result}
                 self.observe.record_observation(observation)
-                print(f"Observation: {observation}")
+                print(f"[{self.name}] Observation: {observation}")
 
                 # Update context with result
                 if result.get("success"):
@@ -170,14 +170,14 @@ class GoalOrientedAgent:
 
                 # Check if goal is achieved
                 if self._check_goal_achieved(goal, current_context):
-                    print("Goal achieved!")
+                    print(f"[{self.name}] Goal achieved!")
                     return current_context
 
             # Refine context for the next iteration
             current_context = self._refine_context(current_context)
-            print(f"Refined Context: {current_context}")
+            print(f"[{self.name}] Refined Context: {current_context}")
 
-        print("Failed to achieve goal within maximum iterations.")
+        print(f"[{self.name}] Failed to achieve goal within maximum iterations.")
         return current_context
 
     def _check_goal_achieved(self, goal: str, context: Dict[str, Any]) -> bool:
@@ -209,19 +209,37 @@ class GoalOrientedAgent:
 
 
 if __name__ == "__main__":
-    # Example usage with LLMTool and SecureSandbox
-    def sample_tool(input_data):
+    # Define two agents that can collaborate
+    def sample_tool_agent_1(input_data):
         """
-        API Syntax: sample_tool(input_data: Dict[str, Any]) -> str
+        API Syntax: sample_tool_agent_1(input_data: Dict[str, Any]) -> str
         Processes the input and returns the result.
         """
-        return f"Processed {input_data}"
+        return f"Agent 1 processed {input_data}"
 
-    tools = {"sample_tool": sample_tool}
+    def sample_tool_agent_2(input_data):
+        """
+        API Syntax: sample_tool_agent_2(input_data: Dict[str, Any]) -> str
+        Processes the input and returns the result.
+        """
+        return f"Agent 2 processed {input_data}"
+
+    tools_agent_1 = {"sample_tool_agent_1": sample_tool_agent_1}
+    tools_agent_2 = {"sample_tool_agent_2": sample_tool_agent_2}
+
     import ollama
     llm = ollama.Client(host='http://localhost:11434')
-    agent = GoalOrientedAgent(llm, tools, "Test Agent", "An agent for testing.")
-    goal = "Complete a sample task"
-    initial_context = {"sample_tool": None}
-    result = agent.solve_goal(goal, initial_context)
-    print(f"Final Result: {result}")
+
+    agent_1 = CollaborativeAgent(llm, tools_agent_2, "Agent 1", "Collaborative agent 1")
+    agent_2 = CollaborativeAgent(llm, tools_agent_1, "Agent 2", "Collaborative agent 2")
+
+    goal = "Complete a complex task collaboratively"
+    initial_context = {"sample_tool_agent_1": None, "sample_tool_agent_2": None}
+
+    # Start collaboration with Agent 1 initiating the process
+    result = agent_1.solve_goal(goal, initial_context)
+    print(f"Final Result from Agent 1: {result}")
+
+    # Agent 2 can further refine or take over based on context
+    result = agent_2.solve_goal(goal, result)
+    print(f"Final Result from Agent 2: {result}")
