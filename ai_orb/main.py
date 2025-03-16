@@ -1,8 +1,7 @@
-from agent import CollaborativeAgent
+from ai_orb.agent import CollaborativeAgent, SecureSandbox, Tool
 import ollama
 import asyncio
 import json
-from sandbox import SecureSandbox, Tool
 
 # Define the tools available to the agent as actual functions
 def summarize(text):
@@ -43,27 +42,27 @@ async def main():
     
     # Wrap tools with secure sandbox
     tools = {
-        "summarize": LLMTool(
+        "summarize": Tool(
             summarize, 
             name="summarize", 
             description="Summarize a given text"
         ),
-        "classify": LLMTool(
+        "classify": Tool(
             classify, 
             name="classify", 
             description="Classify a given text"
         ),
-        "generate": LLMTool(
+        "generate": Tool(
             generate, 
             name="generate", 
             description="Generate text based on a prompt"
         ),
-        "translate": LLMTool(
+        "translate": Tool(
             translate, 
             name="translate", 
             description="Translate text to a target language"
         ),
-        "qa": LLMTool(
+        "qa": Tool(
             qa, 
             name="qa", 
             description="Answer a question based on a given context"
@@ -72,19 +71,24 @@ async def main():
     
     # Create properly structured multi-agent system
     agents = {
-        "research_agent": GoalOrientedAgent(
-            llm.chat(model=model_name), 
-            sandbox,
-            tools,
-            name="ResearchAgent",
-            description="Researches current AI trends"
+        "agent1": CollaborativeAgent(
+            name=model_name,
+            tools={
+                "summarize": tools["summarize"],
+                "classify": tools["classify"],
+                "generate": tools["generate"]
+            },
+            llm=llm,
+            description="Agent 1"
         ),
-        "analysis_agent": GoalOrientedAgent(
-            llm.chat(model=model_name), 
-            sandbox,
-            tools,
-            name="AnalysisAgent",
-            description="Analyzes and synthesizes AI trend information"
+        "agent2": CollaborativeAgent(
+            name=model_name,
+            tools={
+                "translate": tools["translate"],
+                "qa": tools["qa"]
+            },
+            llm=llm,
+            description="Agent 2"
         )
     }
     
