@@ -248,7 +248,7 @@ class SecureSandbox:
     def _execute_function(self, func, *args, **kwargs):
         """Execute a function in the sandbox and return its result."""
         # Handle LLMTool objects
-        if isinstance(func, LLMTool):
+        if isinstance(func, Tool):
             func = func.func  # Extract the underlying function
 
         # Create code to call the function
@@ -342,4 +342,21 @@ _result = {module_name}.{func_name}(*_args, **_kwargs)
             raise RuntimeError('Function execution failed to produce a result')
 
 if __name__ == '__main__':
-    ...
+    # Example usage
+    sandbox = SecureSandbox(allowed_modules=['math'])
+    code = """
+import math # Allowed module
+print(math.sqrt(16))
+print("Hello, world!")
+"""
+    result = sandbox.execute(code)
+    print(result)  # Should print the square root of 16 and "Hello, world!"
+
+    def add(a, b):
+        return a + b
+
+    secure_add = sandbox.execute(add)
+    result = secure_add(3, 4)
+    print(result)  # Should print 7
+    
+      

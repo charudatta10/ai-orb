@@ -2,6 +2,8 @@ from ai_orb.agent import CollaborativeAgent, SecureSandbox, Tool
 import ollama
 import asyncio
 import json
+from typing import Any, Callable, Dict, Optional
+import inspect
 
 # Define the tools available to the agent as actual functions
 def summarize(text):
@@ -23,6 +25,86 @@ def translate(text, target_language):
 def qa(question, context):
     # Implement the question answering logic here
     return f"Answer to '{question}' based on context"
+
+
+#  Tool Example usage -------------------------------------------------------------------------------------------
+def example_tool(input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Example tool function for demonstration.
+        
+        This function simply returns the input data as-is.
+        
+        Args:
+            input_data (Dict[str, Any]): Input data to be returned
+        
+        Returns:
+            Dict[str, Any]: The same input data
+        """
+        return input_data
+    
+# Create a tool instance
+tool = Tool(example_tool, name="example_tool", description="Simple example tool")
+    
+# Call the tool directly
+result = tool({"key": "value"})
+print(result)  # Output: {'key': 'value'}
+    
+# Convert the tool to a dictionary
+tool_dict = tool.to_dict()
+print(tool_dict)
+
+#  sandbox Example usage -------------------------------------------------------------------------------------------
+sandbox = SecureSandbox(allowed_modules=['math'])
+code = """
+import math # Allowed module
+print(math.sqrt(16))
+print("Hello, world!")
+"""
+result = sandbox.execute(code)
+print(result)  # Should print the square root of 16 and "Hello, world!"
+
+def add(a, b):
+    return a + b
+
+secure_add = sandbox.execute(add)
+result = secure_add(3, 4)
+print(result)  # Should print 7
+
+#  CollaborativeAgent Example usage -------------------------------------------------------------------------------------------
+# Define two agents that can collaborate
+def sample_tool_agent_1(input_data):
+    """
+    API Syntax: sample_tool_agent_1(input_data: Dict[str, Any]) -> str
+    Processes the input and returns the result.
+    """
+    return f"Agent 1 processed {input_data}"
+
+def sample_tool_agent_2(input_data):
+    """
+    API Syntax: sample_tool_agent_2(input_data: Dict[str, Any]) -> str
+    Processes the input and returns the result.
+    """
+    return f"Agent 2 processed {input_data}"
+
+tools_agent_1 = {"sample_tool_agent_1": sample_tool_agent_1}
+tools_agent_2 = {"sample_tool_agent_2": sample_tool_agent_2}
+
+import ollama
+llm = ollama.Client(host='http://localhost:11434')
+
+agent_1 = CollaborativeAgent(llm, tools_agent_2, "Agent 1", "Collaborative agent 1")
+agent_2 = CollaborativeAgent(llm, tools_agent_1, "Agent 2", "Collaborative agent 2")
+
+goal = "Complete a complex task collaboratively"
+initial_context = {"sample_tool_agent_1": None, "sample_tool_agent_2": None}
+
+# Start collaboration with Agent 1 initiating the process
+result = agent_1.solve_goal(goal, initial_context)
+print(f"Final Result from Agent 1: {result}")
+
+# Agent 2 can further refine or take over based on context
+result = agent_2.solve_goal(goal, result)
+print(f"Final Result from Agent 2: {result}")
 
 # Define the main function to demonstrate the multi-agent runner
 async def main():

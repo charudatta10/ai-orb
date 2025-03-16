@@ -47,7 +47,9 @@ class Think:
         """
         try:
             response = self.llm.generate(model="qwen2.5:0.5b", prompt=prompt)
-            return json.loads(response['response'])
+            print(prompt)
+            print(response['response'])
+            return response['response']
         except Exception as e:
             print(f"Error generating plan: {e}")
             return []
@@ -233,7 +235,7 @@ if __name__ == "__main__":
     agent_1 = CollaborativeAgent(llm, tools_agent_2, "Agent 1", "Collaborative agent 1")
     agent_2 = CollaborativeAgent(llm, tools_agent_1, "Agent 2", "Collaborative agent 2")
 
-    goal = "Complete a complex task collaboratively"
+    goal = "use both agents to process data"
     initial_context = {"sample_tool_agent_1": None, "sample_tool_agent_2": None}
 
     # Start collaboration with Agent 1 initiating the process

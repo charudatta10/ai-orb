@@ -92,4 +92,27 @@ class Tool:
 
 # Demonstrate usage
 if __name__ == "__main__":
-    ...
+    def example_tool(input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Example tool function for demonstration.
+        
+        This function simply returns the input data as-is.
+        
+        Args:
+            input_data (Dict[str, Any]): Input data to be returned
+        
+        Returns:
+            Dict[str, Any]: The same input data
+        """
+        return input_data
+    
+    # Create a tool instance
+    tool = Tool(example_tool, name="example_tool", description="Simple example tool")
+    
+    # Call the tool directly
+    result = tool({"key": "value"})
+    print(result)  # Output: {'key': 'value'}
+    
+    # Convert the tool to a dictionary
+    tool_dict = tool.to_dict()
+    print(tool_dict)
