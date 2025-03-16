@@ -3,6 +3,12 @@ from typing import Any, Dict, List, Callable
 from dataclasses import dataclass, field
 from ai_orb.sandbox import SecureSandbox, Tool
 import ollama
+import logging
+import re
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)  # Logger for this module
 
 @dataclass
 class Think:
@@ -47,12 +53,36 @@ class Think:
         """
         try:
             response = self.llm.generate(model="qwen2.5:0.5b", prompt=prompt)
-            print(prompt)
-            print(response['response'])
-            return response['response']
+            logger.debug(f"Plan generation response: {response}")
+            logger.debug(f"Plan generation response: {response['response']}")
+            plan_steps = self._extract_json_snippets(response['response'])
+            return plan_steps
         except Exception as e:
             print(f"Error generating plan: {e}")
             return []
+
+
+    def _extract_json_snippets(self, markdown: str) -> List[Dict[str, Any]]:
+        """
+        Extract JSON snippets from markdown text.
+
+        Args:
+            markdown (str): Markdown text containing JSON code snippets
+
+        Returns:
+            List[Dict[str, Any]]: Parsed JSON objects
+        """
+        json_blocks = re.findall(r"```json(.*?)```", markdown, re.DOTALL)
+        plans = []
+
+        for block in json_blocks:
+            try:
+                plan = json.loads(block.strip())
+                plans.extend(plan)  # Assume each block is a list of steps
+            except json.JSONDecodeError as e:
+                print(f"DEBUG:ai_orb.agent:Error decoding JSON block: {e}")
+
+        return plans
 
 
 @dataclass
@@ -155,7 +185,7 @@ class CollaborativeAgent:
 
             # ACT: Execute steps
             for step in plan:
-                tool_name = step.get("tool")
+                tool_name = step.get("tool", "None")
                 input_data = step.get("input", {})
 
                 print(f"[{self.name}] Executing step: {step}")
