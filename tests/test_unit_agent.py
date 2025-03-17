@@ -1,7 +1,7 @@
 import pytest
 from typing import Dict, Any
 from ai_orb.sandbox import SecureSandbox
-from ai_orb.agent import Think, Act, Observe, CollaborativeAgent, Tool
+from ai_orb.agent import Think, Act, Observe, Agent, Tool
 
 
 # Mock for ollama client
