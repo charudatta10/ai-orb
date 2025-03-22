@@ -107,3 +107,18 @@ class Think:
                 logger.debug(f"Problematic JSON block: {block}")
 
         return plans
+
+
+if __name__ == "__main__":
+    # Example usage
+    llm = ollama.Client()
+    tools = {
+        "tool1": lambda x: x + 1,
+        "tool2": lambda x: x * 2
+    }
+    think = Think(llm=llm, tools=tools)
+    goal = "Generate a list of prime numbers"
+    context = {"input": 10}
+    plan = think.generate_plan(goal, context)
+    print(plan)
+# Output: [{'tool': 'tool1', 'input': 10}, {'tool': 'tool2', 'input': 11}]

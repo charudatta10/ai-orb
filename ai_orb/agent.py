@@ -19,7 +19,7 @@ class Agent:
     
     def __init__(
         self, 
-        llm: ollama, 
+        llm: Any, 
         tools: Dict[str, Callable], 
         name: str, 
         description: str,
