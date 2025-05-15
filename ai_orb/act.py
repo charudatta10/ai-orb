@@ -12,10 +12,10 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-@dataclass
 class Act:
     """Act module handles the execution of tasks in a secure sandbox."""
-    sandbox: SecureSandbox
+    def __init__(self, sandbox: SecureSandbox):
+        self.sandbox = sandbox
 
     def execute_tool(self, tool_name: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -29,7 +29,13 @@ class Act:
             Result of the tool execution
         """
         try:
-            result = self.sandbox.execute(tool_name, input_data)
+            # Look up the tool in the sandbox's allowed tools
+            if hasattr(self.sandbox, "tools") and tool_name in self.sandbox.tools:
+                tool = self.sandbox.tools[tool_name]
+                result = tool(input_data)
+            else:
+                # Fallback: try to execute by name (for protocol compatibility)
+                result = self.sandbox.execute(tool_name, input_data)
             return {"success": True, "output": result}
         except Exception as e:
             logger.error(f"Tool execution error ({tool_name}): {e}")

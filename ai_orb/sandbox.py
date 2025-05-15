@@ -13,6 +13,7 @@ from ai_orb.tool import Tool
 
 class SecureSandbox:
     def __init__(self, 
+                 tools=None,
                  max_time=5,  # Maximum execution time in seconds
                  max_output_size=10 * 1024,  # 10 KB output limit
                  allowed_modules=None):  # Explicitly allowed modules
@@ -27,6 +28,7 @@ class SecureSandbox:
         self.max_time = max_time
         self.max_output_size = max_output_size
         self.allowed_modules = set(allowed_modules or [])
+        self.tools = tools or {}
 
     class SecurityVisitor(ast.NodeVisitor):
         """
@@ -358,5 +360,4 @@ print("Hello, world!")
     secure_add = sandbox.execute(add)
     result = secure_add(3, 4)
     print(result)  # Should print 7
-    
-      
+
