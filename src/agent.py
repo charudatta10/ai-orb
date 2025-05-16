@@ -1,10 +1,10 @@
 import json
 from typing import Any, Dict, List, Callable, Optional, Union, Protocol
 from dataclasses import dataclass, field
-from ai_orb.sandbox import SecureSandbox, Tool
-from ai_orb.think import Think
-from ai_orb.act import Act
-from ai_orb.observe import Observe
+from src.sandbox import SecureSandbox, Tool
+from src.think import Think
+from src.act import Act
+from src.observe import Observe
 import ollama
 import logging
 import re

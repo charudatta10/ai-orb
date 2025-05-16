@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
-from ai_orb.agent import Think
+from src.agent import Think
 import ollama
-from ai_orb.agent import Act, SecureSandbox
+from src.agent import Act, SecureSandbox
 
 class TestThink(unittest.TestCase):
     def setUp(self):

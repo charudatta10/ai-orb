@@ -1,5 +1,5 @@
 import pytest
-from ai_orb.agent import Agent, Tool
+from src.agent import Agent, Tool
 
 
 # Mock LLM and Tools

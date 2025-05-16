@@ -1,4 +1,4 @@
-from ai_orb.agent import Agent, MCPServer, MCPClient, MCPHost
+from src.agent import Agent, MCPServer, MCPClient, MCPHost
 
 class AgentUIProtocol:
     """Example UI protocol for agent interaction."""

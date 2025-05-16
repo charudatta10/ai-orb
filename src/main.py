@@ -1,4 +1,4 @@
-from ai_orb.agent import Agent, MCPServer, MCPHost, MCPClient
+from src.agent import Agent, MCPServer, MCPHost, MCPClient
 import ollama
 
 def sample_tool_agent_1(input_data):

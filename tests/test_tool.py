@@ -1,6 +1,6 @@
 import pytest
 from typing import Any, Dict, Optional
-from ai_orb.tool import Tool  # Replace `your_module` with the actual module name
+from src.tool import Tool  # Replace `your_module` with the actual module name
 
 # Define sample functions to wrap with the Tool class
 def sample_function(x: int, y: int) -> int:
