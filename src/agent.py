@@ -1,3 +1,5 @@
+# © 2025 Charudatta Korde · Licensed under CC BY-NC-SA 4.0 · View License @ https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+# C:\Users\korde\Home\Github\task-runner-SDLC\src\templates/LICENSE
 import json
 from typing import Any, Dict, List, Callable, Optional, Union, Protocol
 from dataclasses import dataclass, field
