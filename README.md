@@ -1,5 +1,10 @@
 # ai-orb
 
+<p align="center">
+  <img src="assets/cover.png" alt="ai-orb" width="800"/>
+</p>
+
+
 ![Version](https://img.shields.io/github/v/release/charudatta10/ai-orb)
 
 A multi-agent blog writing system built with FastAPI, FastMACP, and Ollama.
