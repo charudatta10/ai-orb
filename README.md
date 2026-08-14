@@ -1,61 +1,48 @@
-# ai-agent
+# ai-orb
 
-<!-- Badges: Project Status GitHub -->
-![license](https://flat.badgen.net/static/license/EULA/blue)
-![release](https://flat.badgen.net/github/release/charudatta10/ai-agent)
-![commits](https://flat.badgen.net/github/commits/charudatta10/ai-agent)
-![last-commit](https://flat.badgen.net/github/last-commit/charudatta10/ai-agent)
+![Version](https://img.shields.io/github/v/release/charudatta10/ai-orb)
 
-[![sponsor](https://flat.badgen.net//static/sponsor/%E2%9D%A4?)](https://github.com/sponsors/charudatta10)
-[![contact](https://flat.badgen.net//static/contact/%E2%98%8E)](https://charudatta10.github.io/LinkNet/)
-[![work](https://flat.badgen.net//static/portfolio/%F0%9F%96%BF)](https://charudatta10.github.io/myblog/)
-![project](https://flat.badgen.net///static/project/ai-agent)
+A multi-agent blog writing system built with FastAPI, FastMACP, and Ollama.
 
-<!-- Badges: Tools used -->
-`Python` `Ollama` 
+## What is this?
 
-## Documentation
-
-An AI agent framework   
+ai-orb is a multi-agent blog writing system that coordinates several LLM agents powered by Ollama. It uses FastMACP for agent communication and FastAPI to serve the application, with web scraping and PDF processing for research and knowledge extraction.
 
 ## Features
 
-- LLM agents 
-- Tools 
-- Sandbox 
-- Code runner 
+- Multi-agent architecture for blog content creation
+- Web scraping capabilities for research
+- PDF processing for knowledge extraction
+- Ollama-powered LLM agents
+- FastMACP for agent communication
+- FastAPI for serving the application
 
+## Install / Quickstart
 
-## Getting Started
-
-1. Clone the repository:
+Clone the repository:
 
 ```bash
-   git clone https://github.com/charudatta10/ai-agent.git
+git clone https://github.com/charudatta10/ai-orb.git
+cd ai-orb
 ```
 
-1. Navigate to the project directory:
+Install dependencies and run:
 
 ```bash
-cd ai-agent
-```
-
-1. Run the project:
-
-```bash
+pip install -e .
 invoke
 ```
 
-## Contributing
+## Usage
 
-Contributions are welcome! Please open an issue or submit a pull request for any bugs or feature requests.  
-[Report a bug or Request a feature](https://github.com/charudatta10/ai-agent/issues)
+Connect to a local Ollama instance on `http://localhost:11434`, then serve the multi-agent blog writing system with FastAPI:
 
-## COPYRIGHT NOTICE 
+```bash
+python -m src.main
+```
 
-**Some Rights Reserved © 2025 Charudatta Korde.**  
-This work and its derivatives may only be used with full attribution to the original author.  
-Any unauthorized commercial use is strictly prohibited.  
-For complete details, refer to the accompanying License Agreement.  
+## License
+
+This project is licensed under the terms in [LICENSE.md](LICENSE.md).
 
 <!-- Acknowledgment, References, Misc -->
