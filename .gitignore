@@ -176,3 +176,17 @@ cython_debug/
 
 
 *.zip
+
+# Project hygiene
+__pycache__/
+*.py[cod]
+.venv/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+*.log
+.*.swp

@@ -46,6 +46,10 @@ Connect to a local Ollama instance on `http://localhost:11434`, then serve the m
 python -m src.main
 ```
 
+## Docs
+
+See the [documentation](docs/README.md) for the algorithm, reference, and FAQ.
+
 ## License
 
 This project is licensed under the terms in [LICENSE.md](LICENSE.md).
